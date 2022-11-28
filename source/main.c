@@ -10,9 +10,10 @@
 
 int main(int argc, char const *argv[])
 {
-    /* code */
-    hellop_1_pollard();
-    hellorho_pollard();
-    hellortrial_division();
+    
+    mpz_t N;
+    mpz_init(N);
+    mpz_set_str(N,"633564754957339397639948337059",0);
+    fact_p_1_pollard(N);
     return 0;
 }

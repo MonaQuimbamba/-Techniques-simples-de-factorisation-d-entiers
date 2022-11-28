@@ -1,7 +1,7 @@
 all: main
 
 main: main.o trial_division.o rho_pollard.o p_1_pollard.o helper.o
-	gcc -Wall -o main main.o trial_division.o rho_pollard.o  p_1_pollard.o helper.o
+	gcc -Wall -o main main.o trial_division.o rho_pollard.o  p_1_pollard.o helper.o -lgmp -lm
 
 main.o : main.c
 	gcc -Wall -c main.c -lgmp -lm
