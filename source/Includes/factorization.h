@@ -56,3 +56,16 @@ bool p_minus_1(mpz_t n,mpz_t p,mpz_t B1,mpz_t B2);
 /// @param B1 the bound lower
 /// @param B2  the bound upper
 void fact_p_1_pollard(mpz_t n,mpz_t  B1,mpz_t B2,factor *f);
+/// @brief 
+/// @param n 
+/// @param p_max 
+/// @param f 
+/// @return 
+void fact_trialDivision(mpz_t n,mpz_t p_max,factor *f);
+
+/// @brief 
+/// @param n 
+/// @param p_max 
+/// @param p 
+/// @return 
+bool trial_division(mpz_t p, mpz_t n,mpz_t p_max);

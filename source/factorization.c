@@ -55,6 +55,8 @@ void add_prime_factor(factor *f,mpz_t N,mpz_t p){
                 mpz_divexact(N, N, p);
                 f->exp[f->nb_factors-1]++;
             }
+
+           // gmp_printf(" =>  %Zu\n",N);
            // f->exp[f->nb_factors-1] *= exp_N;
             f->nb_factors++; // increase the nb  primes
             // realloc memory for the next factor
@@ -66,7 +68,13 @@ void add_prime_factor(factor *f,mpz_t N,mpz_t p){
 }
 
 bool p_minus_1(mpz_t n, mpz_t d, mpz_t B1, mpz_t B2){
-    mpz_t a, p, q,b, tmp;
+
+    if (mpz_probab_prime_p(n, 10) > 0){ // first primality test 
+         mpz_set(d, n);
+        return true;
+    }
+
+    mpz_t a, p, q,tmp;
     gmp_randstate_t generateur;
 
     mpz_init(a);
@@ -75,7 +83,7 @@ bool p_minus_1(mpz_t n, mpz_t d, mpz_t B1, mpz_t B2){
     mpz_urandomm(a, generateur, n);
 
     // Select a random integer a, 2 ≤ a ≤ n − 1, 
-    while (mpz_cmp_ui(a, 1) <= 0) mpz_urandomm(a, generateur, n);
+    if (mpz_cmp_ui(a, 1) <= 0) mpz_set_ui(a,2);
 
     //  compute d = gcd(a, n). If d ≥ 2
     //  then return(d).
@@ -92,6 +100,8 @@ bool p_minus_1(mpz_t n, mpz_t d, mpz_t B1, mpz_t B2){
     mpz_set(d, n);
     bool found = false;
     bool go_next_stage=false;
+
+    // stage 1 
     while((mpz_cmp(d, n) == 0) & (go_next_stage==false)) // make sure that if at the end d = n then we can do it again with a new base 'a'
     {
         while (mpz_cmp(p, B1) <= 0){ // make sure that p <= B1
@@ -131,11 +141,13 @@ bool p_minus_1(mpz_t n, mpz_t d, mpz_t B1, mpz_t B2){
     gmp_randclear(generateur);
     // stage  2 
     if ((mpz_cmp(B2, B1) > 0) && (go_next_stage == true)){
-             mpz_init(b);
+             
+             mpz_t b,tmp_b,tmp_p,tmp_exp,t;
+             mpz_inits(b,tmp_b,tmp_p,tmp_exp,t,NULL);
              mpz_set_ui(a,2);
              
             for(int i = 1 ; i <= mpz_get_ui(B1)  ; i++){ // computes ak+1 = ak^(k+1) mod n, for 1 <= k <= B1 − 1.
-                mpz_powm_ui(a,a,i,n);
+             mpz_powm_ui(a,a,i,n);
             }
                 mpz_set(b,a); // set b(o)=a(B1)
                 mpz_nextprime(p,B1);
@@ -151,55 +163,56 @@ bool p_minus_1(mpz_t n, mpz_t d, mpz_t B1, mpz_t B2){
                         }
                        mpz_nextprime(p,p);
                 }
-              
                 mpz_clear(b);
+
+/* *********************  TO DO ****************************************
+              mpz_set(b,a); // set b(o)=a(B1)
+                mpz_nextprime(p,B1);
+                int i=0;
+                while(mpz_cmp(B2,p)>0){ // We then compute b1 = b(o)^l1  mod n, ...
+
+
+                    if(i<1){ // to compute the b1 only 
+                        
+
+                        mpz_set(tmp_b,b);// set tmp_b <- b(k-1)
+                        mpz_set(tmp_p,p); // set tmp_p <- p(k-1)
+
+                        mpz_powm(b,b,p,n); // set b <- b(k+1)
+                        mpz_sub_ui(tmp, b, 1);
+                        mpz_gcd(tmp, tmp, n);
+                        if (mpz_cmp_ui(tmp, 1) > 0 && mpz_cmp(tmp, n) < 0){
+                            mpz_set(d, tmp);
+                            found = true;
+                            break;
+                        }
+                       mpz_nextprime(p,p);
+                       i++;
+                    }
+                    else{
+                          //bk+1 = bkclk+1−lk mod n
+                          mpz_sub(tmp_exp,p,tmp_p);  // compute  expo  <- p(k+1) - p(k-1)
+                          mpz_powm(t,tmp_b,tmp_exp,n); // t <- b(o)^(p - tmp_p) mod n 
+                          mpz_mul(t,t,b); // t <- b(k+1) * b(k-1)
+                          mpz_mod(t,t,n);  // b <- t mod n    => set b <- b(k+1)
+
+                          mpz_set(tmp_b,b); // set tmp_b <- b(k - 1)
+                          mpz_set(tmp_p,p); // set tmp_p <- p(k -1)
+                          mpz_set(b,t);
+
+                        mpz_sub_ui(tmp, b, 1);
+                        mpz_gcd(tmp, tmp, n);
+                        if (mpz_cmp_ui(tmp, 1) > 0 && mpz_cmp(tmp, n) < 0){
+                            mpz_set(d, tmp);
+                            found = true;
+                            break;
+                        }
+                       mpz_nextprime(p,p);
+                    }    
+                }
+                mpz_clears(b,tmp_b,tmp_p,tmp_exp,t,NULL);*/
                 
     }
-   
-    // stage 2 of the algorithm, only started when B2 > B1 and no factor found after stage 1
-   /* if ((mpz_cmp(B2, B1) > 0)){
-        // precompute the prime gap table
-        // gap between primes less than 10^15 is less than 1000
-
-        mpz_t p_next, g, gap[1000];
-        mpz_inits(p_next, g, NULL);
-
-        // at the end of stage 1, a = base^(product of prime powers <= B1) mod n
-        // compute a^(2k) for 0 < 2k < 1000 and store in gap[2k-1]
-        for(int i = 1; i < 1000; i = i+2){
-            mpz_init(gap[i]);
-            mpz_powm_ui(gap[i], a, i+1, n);
-
-        }
-        // p is the first prime > B1, then first we must compute a^p mod n
-        mpz_powm(a, a, p, n);
-
-
-        // compute a = a^p * a^(next prime to p - p) for all primes p <= B2
-        while(mpz_cmp(p, B2) <= 0){
-            mpz_nextprime(p_next, p);
-            mpz_sub(g, p_next, p); // compute gap = next prime p_next - current prime p
-            int i = mpz_get_ui(g);
-            mpz_mul(a, a, gap[i-1]); // compute a^p * a^gap
-            mpz_mod(a, a, n);
-
-            // compute gcd(a - 1, n)
-            mpz_sub_ui(tmp, a, 1);
-            mpz_gcd(d, tmp, n);
-            if (mpz_cmp_ui(d, 1) > 0 && mpz_cmp(d, n) < 0){
-                found = 0;
-                break;
-            }
-
-            // go to the next prime
-            mpz_set(p, p_next);
-        }
-
-        // clear data;
-        mpz_clears(p_next, g, NULL);
-        for(int i = 1; i < 1000; i = i+2) mpz_clear(gap[i]);
-    }*/
-
     mpz_clears(a, p, q, tmp,NULL);
     return found;
 }
@@ -207,110 +220,86 @@ bool p_minus_1(mpz_t n, mpz_t d, mpz_t B1, mpz_t B2){
 void fact_p_1_pollard(mpz_t n,mpz_t B1,mpz_t B2,factor *f)
 {
 
-    // first primality test  in case N is prime
-    if (mpz_probab_prime_p(n, 10) > 0){
-            // N is already prime 
-            gmp_printf(" is already prime ");
 
-    } else{
-            printf("************* p-1 pollard ***************** \n");
-            if (f->prime_factors == NULL)  f->prime_factors = (mpz_t*) malloc(sizeof(mpz_t));
-            if (f->exp == NULL )  f->exp = (uint64_t*) malloc(sizeof(uint64_t));
-            f->exp[0] = 1;
-            f->nb_factors = 1;
-            
-            mpz_t N, d, p, c;
-            mpz_init_set(N, n);
+    
+    printf("************* p-1 pollard ***************** \n");
+    if (f->prime_factors == NULL)  f->prime_factors = (mpz_t*) malloc(sizeof(mpz_t));
+    if (f->exp == NULL )  f->exp = (uint64_t*) malloc(sizeof(uint64_t));
+    f->exp[0] = 1;
+    f->nb_factors = 1;
+    
+    mpz_t N, d, p, c;
+    mpz_init_set(N, n);
 
-            mpz_inits(d, p, c, NULL);
-            mpz_set(d, N);
-            mpz_set_ui(p, 1);
+    mpz_inits(d, p, c, NULL);
+    mpz_set(d, N);
+    mpz_set_ui(p, 1);
 
 
-    bool found ;
+    bool fact;
     while (mpz_cmp_ui(N, 1) > 0){
-        found = p_minus_1(d, p, B1, B2);
-        if (!found) break;
+        fact = p_minus_1(d, p, B1, B2);
+        if (!fact) break;
        
         if (mpz_probab_prime_p(p, 10) > 0){  // a factor p is found then  test its primality 
             add_prime_factor(f,N,p); // add the factor to the primes struct 
             mpz_set(d, N);           //  set d to the remaining factor N/p^i
             
             if (mpz_probab_prime_p(d, 10) > 0 || mpz_cmp_ui(d,1)==0){ //  primality test for d to check wheter we complete the factorization or not
-                found = true;
+                mpz_set_ui(N,1);
                 break;
             }
         }
-        
-        // else mpz_set(d, p);  // in case factor p is not prime, apply Pollard's p-1 for p to find a prime factor of n
+        else mpz_set(d, p);  // in case factor p is not prime, apply Pollard's p-1 for p to find a prime factor of n
     }
 
+ 
     // remaining factor is 1, complete factorization
-    //if (mpz_cmp_ui(N, 1) == 0) r = 1;
+    if (mpz_cmp_ui(N, 1) == 0){ printf("factorization complete \n");  print_primes_factors(f,n); }
     // remaining factor is nontrivial and not prime, incomplete factorization
-    //else if ((r != 1) && (mpz_cmp(N, n) < 0)) r = 0;
-    // else r = -1 and N = n indicate that algorithm fails to find a nontrivial factor of n -> failure
-
+    else if (!fact) {printf("factorization incomplete  try again with a upper bound B2 \n");  //print_primes_factors(f,N);
+    }
+    
     mpz_clears(N, d, p, c, NULL);
                 
-    }     
-    
-   
-
-    
-
 }
 
-int fact_trialDivision(mpz_t *tab,mpz_t n,mpz_t pmax)
+bool trial_division(mpz_t p, mpz_t n, mpz_t p_max){
+    if (mpz_probab_prime_p(n, 10) != 0){
+        mpz_set(p,n);
+        return true;
+    }
+    mpz_init_set_ui(p, 2); // set the first prime  we can next chose from which number we want to start 
+    while (mpz_cmp(p, p_max) <= 0){
+        if (mpz_divisible_p(n, p) != 0) {
+            return true;
+        }
+        mpz_nextprime(p, p);
+    }
+    return false;
+}
+
+void fact_trialDivision(mpz_t n,mpz_t p_max,factor *f)
 {
-   /* mpz_t r,p,quotient,result;
-	mpz_inits(quotient,r,result,NULL);
-	mpz_sqrt(r,n);
-	mpz_init_set_ui(p,2);
-	int e=0;
-	int i=0;
+   
+    if (f->prime_factors == NULL)  f->prime_factors = (mpz_t*) malloc(sizeof(mpz_t));
+    if (f->exp == NULL )  f->exp = (uint64_t*) malloc(sizeof(uint64_t));
+    f->exp[0] = 1;
+    f->nb_factors = 1;
+    bool fact ;
+    mpz_t N, p;
+    mpz_inits(p, N, NULL);
+    mpz_set(N, n);
 
-	
-	tab=(mpz_t*)(malloc(sizeof(mpz_t))); //allocation dynamique du tableau des facteurs de n
-	int z=0;
-
-	while(mpz_cmp(p,r)<=0)
-	{
-		mpz_mod(quotient,n,p);
-		while(mpz_cmp_ui(quotient,0)==0)
-		{
-			mpz_cdiv_q(n,n,p); 
-			e=e+1;
-			mpz_mod(quotient,n,p);
-		}
-		if(e>0) // ie si p different de 1
-		{
-			mpz_init_set_ui(tab[i],1);
-			mpz_pow_ui(result,p,e);
-			if (mpz_cmp(result,pmax)<=0) // on teste si le facteur trouvé est inferieur ou pas à pmax
-			{
-				mpz_set(tab[i],result);
-                
-				mpz_sqrt(r,n);
-				e=0;
-				i+=1;
-			}
-		}
-		mpz_add_ui(p,p,1); // on augmente p de 1
-		
-	}
-	if(mpz_cmp_ui(n,1)>0 && mpz_cmp(n,pmax)<=0)
-	{
-		mpz_init_set_ui(tab[i],1);
-		mpz_set(tab[i],n);
-        
-	}
-	else
-	{
-        gmp_printf("%Zu ",tab[i]);
-		i=i-1; // on ne retourne pas le dernier facteur de n qui est superieur à pmax
-	}
-	if (i!=0){ return 1;} else{	return -1;}*/
-    return 0;
+    while (mpz_cmp_ui(N, 1) > 0){
+        // trial division by primes from p_min to p_max
+        fact = trial_division(p, N,p_max);
+        if (!fact) break; // end of factorizaction  or fail 
+        add_prime_factor(f,N,p);
+    }
+    print_primes_factors(f,n);
+    mpz_clears(N, p, NULL);
+ 
+    
 
 }
