@@ -9,26 +9,6 @@ unsigned long int cputime()
     return rus.ru_utime.tv_sec * 1000 + rus.ru_utime.tv_usec / 1000;
 }
 
-void testUnitaire(factor *f, mpz_t N){
-     mpz_t test,tmp;
-     mpz_inits(test,tmp,NULL);
-     mpz_set_ui(test,1);
-     for (int i = 0; i < f->nb_factors; i++){
-                 mpz_set_ui(tmp,1);
-                if (f->exp[i] != 1) {  
-                    mpz_pow_ui(tmp,f->prime_factors[i],f->exp[i]);
-                }               
-                else { 
-                    mpz_set(tmp,f->prime_factors[i]);
-                }  
-                mpz_mul(test,test,tmp);
-}
-
-if(mpz_cmp(test,N)!=0) printf(" full factorization faill");
-mpz_clears(test,tmp,NULL);
-
-}
-
 void print_primes_factors(factor *f,mpz_t N){
     gmp_printf("%Zd = ", N);
      for (int i = 0; i < f->nb_factors; i++){
@@ -39,8 +19,8 @@ void print_primes_factors(factor *f,mpz_t N){
             printf("\n\n");
     // clear up all
      for (int i = 0; i < f->nb_factors; i++) mpz_clear(f->prime_factors[i]);
-        free(f->prime_factors);
-        free(f->exp);
+     free(f->prime_factors);
+     free(f->exp);
 }
 
 void add_prime_factor(factor *f,mpz_t N,mpz_t p){
@@ -217,18 +197,16 @@ bool p_minus_1(mpz_t n, mpz_t d, mpz_t B1, mpz_t B2){
     return found;
 }
 
-void fact_p_1_pollard(mpz_t n,mpz_t B1,mpz_t B2,factor *f)
+int fact_p_1_pollard(mpz_t n,mpz_t B1,mpz_t B2,factor *f)
 {
-
-
-    
-    printf("************* p-1 pollard ***************** \n");
     if (f->prime_factors == NULL)  f->prime_factors = (mpz_t*) malloc(sizeof(mpz_t));
     if (f->exp == NULL )  f->exp = (uint64_t*) malloc(sizeof(uint64_t));
     f->exp[0] = 1;
     f->nb_factors = 1;
     
     mpz_t N, d, p, c;
+    bool fact;
+    int res;
     mpz_init_set(N, n);
 
     mpz_inits(d, p, c, NULL);
@@ -236,7 +214,7 @@ void fact_p_1_pollard(mpz_t n,mpz_t B1,mpz_t B2,factor *f)
     mpz_set_ui(p, 1);
 
 
-    bool fact;
+
     while (mpz_cmp_ui(N, 1) > 0){
         fact = p_minus_1(d, p, B1, B2);
         if (!fact) break;
@@ -254,13 +232,15 @@ void fact_p_1_pollard(mpz_t n,mpz_t B1,mpz_t B2,factor *f)
     }
 
  
-    // remaining factor is 1, complete factorization
-    if (mpz_cmp_ui(N, 1) == 0){ printf("factorization complete \n");  print_primes_factors(f,n); }
-    // remaining factor is nontrivial and not prime, incomplete factorization
-    else if (!fact) {printf("factorization incomplete  try again with a upper bound B2 \n");  //print_primes_factors(f,N);
-    }
+    //  complete factorization
+    if (mpz_cmp_ui(N, 1) == 0) res= 0;
+    //  incomplete factorization or fail to factorized 
+    else if (!fact)  res= -1 ; 
+    
     
     mpz_clears(N, d, p, c, NULL);
+
+    return res;
                 
 }
 
@@ -279,7 +259,7 @@ bool trial_division(mpz_t p, mpz_t n, mpz_t p_max){
     return false;
 }
 
-void fact_trialDivision(mpz_t n,mpz_t p_max,factor *f)
+int fact_trialDivision(mpz_t n,mpz_t p_max,factor *f)
 {
    
     if (f->prime_factors == NULL)  f->prime_factors = (mpz_t*) malloc(sizeof(mpz_t));
@@ -287,6 +267,7 @@ void fact_trialDivision(mpz_t n,mpz_t p_max,factor *f)
     f->exp[0] = 1;
     f->nb_factors = 1;
     bool fact ;
+    int res;
     mpz_t N, p;
     mpz_inits(p, N, NULL);
     mpz_set(N, n);
@@ -297,9 +278,15 @@ void fact_trialDivision(mpz_t n,mpz_t p_max,factor *f)
         if (!fact) break; // end of factorizaction  or fail 
         add_prime_factor(f,N,p);
     }
-    print_primes_factors(f,n);
+  
+    //  complete factorization
+    if (mpz_cmp_ui(N, 1) == 0) res= 0;
+    //  incomplete factorization or fail to factorized 
+    else if (!fact)  res= -1 ; 
+    
     mpz_clears(N, p, NULL);
- 
+
+    return res;
     
 
 }
