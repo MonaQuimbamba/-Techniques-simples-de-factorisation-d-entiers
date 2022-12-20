@@ -16,7 +16,6 @@ int main(int argc, char const *argv[])
           exit(-1);
    }
 
-
    int mode = atoi(argv[1]);
    mpz_t n; 
    int r;
@@ -74,9 +73,6 @@ int main(int argc, char const *argv[])
             else if(r==-1)  printf("Factorization incompleted  try again with a bound B2 bigger \n");
             print_primes_factors(&f,n);
             printf("Process finished in %.9f secs \n", (double)(end_time-start_time)/CLOCKS_PER_SEC);
-
-
-
             mpz_clears(n, B1, B2, NULL);
          break;
 

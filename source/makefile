@@ -9,6 +9,5 @@ main.o : main.c
 factorization.o : factorization.c
 	gcc -c -Wall factorization.c -lm -lgmp
 
-
 clean :
 	rm -f  *.o *~
