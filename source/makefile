@@ -1,13 +1,13 @@
 all: main
 
 main: main.o factorization.o 
-	gcc -Wall -o main main.o factorization.o -lgmp -lm
+	gcc -g -Wall -o main main.o factorization.o -lgmp
 
 main.o : main.c
-	gcc -Wall -c main.c -lgmp -lm
+	gcc -g -Wall -c main.c -lgmp
 
 factorization.o : factorization.c
-	gcc -c -Wall factorization.c -lm -lgmp
+	gcc -g -c -Wall factorization.c  -lgmp 
 
 clean :
 	rm -f  *.o *~

@@ -9,50 +9,30 @@ unsigned long int cputime()
     return rus.ru_utime.tv_sec * 1000 + rus.ru_utime.tv_usec / 1000;
 }
 
-void print_primes_factors(factor *f,mpz_t N){
+void print_primes_factors(PrimeFactors *f,mpz_t N){
     gmp_printf("%Zd = ", N);
-     for (int i = 0; i < f->nb_factors; i++){
-                if (f->exp[i] != 1) gmp_printf("%Zd^%d", f->prime_factors[i], f->exp[i]);
-                else gmp_printf("%Zd", f->prime_factors[i], f->exp[i]);
-                if (i != f->nb_factors - 1) printf(" * ");
+     for (int i = 0; i < f->num_factors; i++){
+                if (f->exponents[i] != 1) gmp_printf("%Zd^%d", f->prime_factors[i], f->exponents[i]);
+                else gmp_printf("%Zd", f->prime_factors[i], f->exponents[i]);
+                if (i != f->num_factors - 1) printf(" * ");
             }
             printf("\n\n");
-    // clear up all
-     for (int i = 0; i < f->nb_factors; i++) mpz_clear(f->prime_factors[i]);
-     free(f->prime_factors);
-     free(f->exp);
+   
 }
 
-void add_prime_factor(factor *f,mpz_t N,mpz_t p){
 
-            // store the prime factor
-           // uint64_t exp_N = f->exp[f->nb_factors-1];
-            mpz_set(f->prime_factors[f->nb_factors-1], p);
-            f->exp[f->nb_factors-1] = 0;
 
-            // look how many times this primes number is prime factor of N 
-            while(mpz_divisible_p(N, p)!=0){
-                mpz_divexact(N, N, p);
-                f->exp[f->nb_factors-1]++;
-            }
 
-           // gmp_printf(" =>  %Zu\n",N);
-           // f->exp[f->nb_factors-1] *= exp_N;
-            f->nb_factors++; // increase the nb  primes
-            // realloc memory for the next factor
-            f->prime_factors = (mpz_t*) realloc(f->prime_factors, (f->nb_factors)*(sizeof(mpz_t)));
-            f->exp = (uint64_t*) realloc(f->exp, (f->nb_factors)*(sizeof(uint64_t)));
-            // store the remaining factor N/p^e on the prime_factors in case this one is a prime number then we dont need to go back to algorithm to compute it
-            mpz_init_set(f->prime_factors[f->nb_factors-1], N);
-            f->exp[f->nb_factors-1] = 1;
-}
 
 bool p_minus_1(mpz_t n, mpz_t d, mpz_t B1, mpz_t B2){
+
+ 
 
     if (mpz_probab_prime_p(n, 10) > 0){ // first primality test 
          mpz_set(d, n);
         return true;
     }
+
 
     mpz_t a, p, q,tmp;
     gmp_randstate_t generateur;
@@ -197,16 +177,15 @@ bool p_minus_1(mpz_t n, mpz_t d, mpz_t B1, mpz_t B2){
     return found;
 }
 
-int fact_p_1_pollard(mpz_t n,mpz_t B1,mpz_t B2,factor *f)
+int fact_p_1_pollard(mpz_t n,mpz_t B1,mpz_t B2,PrimeFactors *f)
 {
-    if (f->prime_factors == NULL)  f->prime_factors = (mpz_t*) malloc(sizeof(mpz_t));
-    if (f->exp == NULL )  f->exp = (uint64_t*) malloc(sizeof(uint64_t));
-    f->exp[0] = 1;
-    f->nb_factors = 1;
-    
+   
+  
+ 
+     int res;
     mpz_t N, d, p, c;
     bool fact;
-    int res;
+   
     mpz_init_set(N, n);
 
     mpz_inits(d, p, c, NULL);
@@ -214,16 +193,25 @@ int fact_p_1_pollard(mpz_t n,mpz_t B1,mpz_t B2,factor *f)
     mpz_set_ui(p, 1);
 
 
-
     while (mpz_cmp_ui(N, 1) > 0){
         fact = p_minus_1(d, p, B1, B2);
         if (!fact) break;
        
         if (mpz_probab_prime_p(p, 10) > 0){  // a factor p is found then  test its primality 
-            add_prime_factor(f,N,p); // add the factor to the primes struct 
+               
+               uint64_t exponent = 0;
+                while (mpz_divisible_p(N, p) != 0) {
+                mpz_divexact(N, N, p);
+                exponent++;
+                }                
+                if (exponent > 0) {
+                add_factor(f, p, exponent);
+                }
+             
+            //add_prime_factor(f,N,p); // add the factor to the primes struct 
             mpz_set(d, N);           //  set d to the remaining factor N/p^i
-            
             if (mpz_probab_prime_p(d, 10) > 0 || mpz_cmp_ui(d,1)==0){ //  primality test for d to check wheter we complete the factorization or not
+                add_factor(f, d, exponent);
                 mpz_set_ui(N,1);
                 break;
             }
@@ -241,8 +229,19 @@ int fact_p_1_pollard(mpz_t n,mpz_t B1,mpz_t B2,factor *f)
     mpz_clears(N, d, p, c, NULL);
 
     return res;
+    
                 
 }
+
+
+void add_factor(PrimeFactors* pf, mpz_t prime, uint64_t exponent) {
+  pf->num_factors++;
+  pf->prime_factors = (mpz_t*) realloc(pf->prime_factors, pf->num_factors * sizeof(mpz_t));
+  pf->exponents = (uint64_t*) realloc(pf->exponents, pf->num_factors * sizeof(uint64_t));
+  mpz_init_set(pf->prime_factors[pf->num_factors - 1], prime);
+  pf->exponents[pf->num_factors - 1] = exponent;
+}
+
 
 bool trial_division(mpz_t p, mpz_t n, mpz_t p_max){
     if (mpz_probab_prime_p(n, 10) != 0){
@@ -259,13 +258,11 @@ bool trial_division(mpz_t p, mpz_t n, mpz_t p_max){
     return false;
 }
 
-int fact_trialDivision(mpz_t n,mpz_t p_max,factor *f)
+int fact_trialDivision(mpz_t n,mpz_t p_max,PrimeFactors *f)
 {
    
-    if (f->prime_factors == NULL)  f->prime_factors = (mpz_t*) malloc(sizeof(mpz_t));
-    if (f->exp == NULL )  f->exp = (uint64_t*) malloc(sizeof(uint64_t));
-    f->exp[0] = 1;
-    f->nb_factors = 1;
+
+   
     bool fact ;
     int res;
     mpz_t N, p;
@@ -276,7 +273,18 @@ int fact_trialDivision(mpz_t n,mpz_t p_max,factor *f)
         // trial division by primes from p_min to p_max
         fact = trial_division(p, N,p_max);
         if (!fact) break; // end of factorizaction  or fail 
-        add_prime_factor(f,N,p);
+        if (mpz_probab_prime_p(p, 10) > 0){
+               
+                uint64_t exponent = 0;
+                while (mpz_divisible_p(N, p) != 0) {
+                mpz_divexact(N, N, p);
+                exponent++;
+                }
+                if (exponent > 0) {
+                add_factor(f, p, exponent);
+                }
+        }
+
     }
   
     //  complete factorization
@@ -288,5 +296,186 @@ int fact_trialDivision(mpz_t n,mpz_t p_max,factor *f)
 
     return res;
     
+
+}
+
+bool pollard_rho_Floy_cycle(mpz_t n, mpz_t d,uint64_t nb_iterations){
+
+    mpz_t t,x, y, c;
+    mpz_inits(t,x, y, c, NULL);
+
+    // Set the initial values for x and y
+    mpz_set_ui(x, 2);
+    mpz_set_ui(y, 2);
+
+    gmp_randstate_t my_generator; 
+    gmp_randinit_default(my_generator);
+    gmp_randseed_ui(my_generator, time(NULL));
+    mpz_urandomm(c,my_generator,n);
+    
+
+    // Set the initial value for d
+    mpz_set_ui(d, 1);
+    unsigned int i = 0;
+    while(mpz_cmp_ui(d, 1) == 0){
+        if (i > nb_iterations) break;
+        i++;
+
+        // Set x to (x^2 + c) mod n
+        mpz_mul(x, x, x);
+        mpz_add(x, x, c);
+        mpz_mod(x, x, n);
+
+        // Set y to (y^2 + c) mod n
+        mpz_mul(y, y, y);
+        mpz_add(y, y, c);
+        mpz_mod(y, y, n);
+
+        // Set y to (y^2 + c) mod n again
+        mpz_mul(y, y, y);
+        mpz_add(y, y, c);
+        mpz_mod(y, y, n);
+        
+        // d = gcd(|x-y|,n)
+        mpz_sub(d, x, y);
+        mpz_abs(d, d);
+        mpz_gcd(d, d, n);
+
+        if ( mpz_cmp(d,n)!=0 && mpz_cmp_ui(d,1) !=0) {
+            break;
+        }
+    }
+
+     // clear up rand
+    gmp_randclear(my_generator);
+    
+    // Print the result
+    if (mpz_cmp(d,n)==0 || mpz_cmp_ui(d,1)==0 ){
+         mpz_clears(t,x, y, c, NULL);
+        return false;
+
+    } else{
+        gmp_printf("One of the divisors for %Zd is %Zd\n",n,d);
+        //mpz_divexact(t,n,d);
+        //mpz_mod(x,n,d);
+        //gmp_printf("%Zd = %Zd * %Zd + %Zd\n",n,d,t,x);
+        return true;
+    }
+   
+}      
+
+bool pollard_rho_Brent_cycle(mpz_t n, mpz_t d, uint64_t nb_iterations){
+   
+   
+    mpz_t x,y,c,t;
+    mpz_inits(x,c,y,t,NULL);
+    long long int r, k, m;
+
+    // set random for y, c, m
+    // random state
+    gmp_randstate_t my_generator; 
+    gmp_randinit_default(my_generator);
+    gmp_randseed_ui(my_generator, time(NULL));
+    mpz_urandomm(c,my_generator,n);
+
+    // initialize y and p
+    mpz_set_ui(y, 2);
+    mpz_set_ui(d, 1);
+
+    // r is a power of 2
+    r = 1;
+    
+    while ((mpz_cmp_ui(d, 1) == 0) || (mpz_cmp(d, n) == 0)){
+        
+        // x to the current position of y, namely x_i
+        mpz_set(x, y);
+
+        k = 0;
+
+        // y to x_(i+r)
+        for (int i=0;i++;i<r){
+            mpz_mul(y, y, y);
+            mpz_add(y, y, c);
+            mpz_mod(y, y, n);
+        }
+
+        // test gcd(|x-y|, n); where y ranges from x_(i+r) to x_(i+2r)
+        while ((k < r) && (mpz_cmp_ui(d, 1) == 0)){
+            mpz_mul(y, y, y);
+            mpz_add(y, y, c);
+            mpz_mod(y, y, n);
+            mpz_sub(t, x, y);
+            mpz_abs(t, t);
+            mpz_mod(t, t, n);                  
+            mpz_gcd(d, t, n);
+            k++;
+        }
+
+        // going to the next power of 2
+        r = r*2;
+        if (r >= nb_iterations) break;
+        if ( mpz_cmp(d,n)!=0 && mpz_cmp_ui(d,1) !=0) {
+            // printf("r = %lld\n",r);
+            break;
+        }
+    }
+
+    // clear up rand
+    gmp_randclear(my_generator);
+
+    // Print the result
+    if (mpz_cmp(d,n)==0 || mpz_cmp_ui(d,1)==0 ){
+        mpz_clears(x,c,y,t,NULL);
+        return false;
+
+    } else{
+        gmp_printf("One of the divisors for %Zd is %Zd\n",n,d);
+        mpz_clears(x,c,y,t,NULL);
+        return true;
+        
+    }
+    
+
+}
+
+int fact_pollard_rho(mpz_t n,PrimeFactors *f,uint64_t nb_iterations){
+
+
+    bool fact ;
+    int res;
+    mpz_t N, p;
+    mpz_inits(p, N, NULL);
+    mpz_set(N, n);
+
+    while (mpz_cmp_ui(N, 1) > 0){
+        // trial division by primes from p_min to p_max
+        fact = pollard_rho_Brent_cycle(N,p,nb_iterations);
+        gmp_printf(" p value is %Zd \n",p);
+
+        if (!fact) break; // end of factorizaction  or fail 
+        if (mpz_probab_prime_p(p, 10) > 0){
+               
+                uint64_t exponent = 0;
+                while (mpz_divisible_p(N, p) != 0) {
+                mpz_divexact(N, N, p);
+                exponent++;
+                }
+                if (exponent > 0) {
+                   add_factor(f, p, exponent);
+                }
+
+        }
+
+    }
+  
+    //  complete factorization
+    if (mpz_cmp_ui(N, 1) == 0) res= 0;
+    //  incomplete factorization or fail to factorized 
+    else if (!fact)  res= -1 ; 
+    
+    mpz_clears(N, p, NULL);
+
+    return res;
+
 
 }
