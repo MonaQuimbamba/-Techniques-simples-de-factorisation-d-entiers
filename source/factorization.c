@@ -299,7 +299,7 @@ int fact_trialDivision(mpz_t n,mpz_t p_max,PrimeFactors *f)
 }
 
 
-int pollard_rho_Floy_cycle(mpz_t n, mpz_t d,uint64_t nb_iterations){
+bool pollard_rho_Floy_cycle(mpz_t n, mpz_t d,uint64_t nb_iterations){
 
     mpz_t t,x, y, c;
     mpz_inits(t,x, y, c, NULL);
@@ -309,7 +309,7 @@ int pollard_rho_Floy_cycle(mpz_t n, mpz_t d,uint64_t nb_iterations){
     mpz_set_ui(y, 2);
 
    
-    mpz_set_ui(c,2);
+    mpz_set_ui(c,2); // x^2 + 2;
     
 
     // Set the initial value for d
@@ -344,15 +344,15 @@ int pollard_rho_Floy_cycle(mpz_t n, mpz_t d,uint64_t nb_iterations){
         }
     }    
     mpz_clears(t,x, y, c, NULL);
-    if ((mpz_cmp(d, n) == 0) || (mpz_cmp_ui(d, 1) == 0)) return -1;
-    else return 0;
+    if ((mpz_cmp(d, n) == 0) || (mpz_cmp_ui(d, 1) == 0)) return false;
+    else return true;
    
 }      
 
-int pollard_rho_Brent_cycle(mpz_t n, mpz_t d, uint64_t nb_iterations){
+bool pollard_rho_Brent_cycle(mpz_t n, mpz_t d, uint64_t nb_iterations){
     mpz_t x,y,c,t;
     mpz_inits(x,c,y,t,NULL);
-    long long int r, k, m;
+   uint64_t r, k;
 
     // set random for y, c, m
     mpz_set_ui(c,1);
@@ -394,7 +394,6 @@ int pollard_rho_Brent_cycle(mpz_t n, mpz_t d, uint64_t nb_iterations){
         r = r*2;
         if (r >= nb_iterations) break;
         if ( mpz_cmp(d,n)!=0 && mpz_cmp_ui(d,1) !=0) {
-            // printf("r = %lld\n",r);
             break;
         }
     }
@@ -402,8 +401,8 @@ int pollard_rho_Brent_cycle(mpz_t n, mpz_t d, uint64_t nb_iterations){
     
     mpz_clears(x,c,y,t,NULL);
 
- if ((mpz_cmp(d, n) == 0) || (mpz_cmp_ui(d, 1) == 0)) return -1;
-    else return 0;
+    if ((mpz_cmp(d, n) == 0) || (mpz_cmp_ui(d, 1) == 0)) return false;
+    else return true;
 }
 
 
@@ -412,27 +411,19 @@ int pollard_rho_Brent_cycle(mpz_t n, mpz_t d, uint64_t nb_iterations){
 int fact_pollard_rho(mpz_t n,PrimeFactors *f,uint64_t nb_iterations){
 
 
-    int fact ;
+    bool fact ;
     int res;
-    mpz_t N, d, p, c;
-    mpz_inits(d, p, c,N, NULL);
+    mpz_t N, d, p;
+    mpz_inits(d, p,N, NULL);
     mpz_set(N, n);
     mpz_set(d, n);
     mpz_set_ui(p, 1);
 
     while (mpz_cmp_ui(N, 1) > 0){
-        // start with x^2 + 1
-        mpz_set_ui(c, 1);
+      
         fact = pollard_rho_Floy_cycle( d,p,  nb_iterations);
-
-        // if fail, start with x^2 + 2
-        if (fact != 0){
-            mpz_set_ui(c, 2);
-            fact = pollard_rho_Floy_cycle( d,p,  nb_iterations);
-        }
-
         // fail for both choices of polynomial
-        if (fact != 0) break;
+        if (!fact) break;
 
         // a factor p is found, perform primality test
         if (mpz_probab_prime_p(p, 10) != 0) {
@@ -459,9 +450,9 @@ int fact_pollard_rho(mpz_t n,PrimeFactors *f,uint64_t nb_iterations){
     // remaining factor is 1, complete factorization
     if (mpz_cmp_ui(N, 1) == 0) res = 0;
     // remaining factor is nontrivial and not prime, incomplete factorization
-    else if ((fact != 1) && (mpz_cmp(N, n) < 0)) res = -1;
+    else if ((!fact)) res = -1;
 
-    mpz_clears(N, d, p, c, NULL);
+    mpz_clears(N, d, p, NULL);
     
     return res;
 
