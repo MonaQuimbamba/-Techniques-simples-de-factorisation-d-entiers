@@ -181,8 +181,7 @@ int fact_p_1_pollard(mpz_t n,mpz_t B1,mpz_t B2,PrimeFactors *f)
 {
    
   
- 
-     int res;
+    int res;
     mpz_t N, d, p, c;
     bool fact;
    
@@ -299,7 +298,8 @@ int fact_trialDivision(mpz_t n,mpz_t p_max,PrimeFactors *f)
 
 }
 
-bool pollard_rho_Floy_cycle(mpz_t n, mpz_t d,uint64_t nb_iterations){
+
+int pollard_rho_Floy_cycle(mpz_t n, mpz_t d,uint64_t nb_iterations){
 
     mpz_t t,x, y, c;
     mpz_inits(t,x, y, c, NULL);
@@ -308,10 +308,8 @@ bool pollard_rho_Floy_cycle(mpz_t n, mpz_t d,uint64_t nb_iterations){
     mpz_set_ui(x, 2);
     mpz_set_ui(y, 2);
 
-    gmp_randstate_t my_generator; 
-    gmp_randinit_default(my_generator);
-    gmp_randseed_ui(my_generator, time(NULL));
-    mpz_urandomm(c,my_generator,n);
+   
+    mpz_set_ui(c,2);
     
 
     // Set the initial value for d
@@ -344,39 +342,20 @@ bool pollard_rho_Floy_cycle(mpz_t n, mpz_t d,uint64_t nb_iterations){
         if ( mpz_cmp(d,n)!=0 && mpz_cmp_ui(d,1) !=0) {
             break;
         }
-    }
-
-     // clear up rand
-    gmp_randclear(my_generator);
-    
-    // Print the result
-    if (mpz_cmp(d,n)==0 || mpz_cmp_ui(d,1)==0 ){
-         mpz_clears(t,x, y, c, NULL);
-        return false;
-
-    } else{
-        gmp_printf("One of the divisors for %Zd is %Zd\n",n,d);
-        //mpz_divexact(t,n,d);
-        //mpz_mod(x,n,d);
-        //gmp_printf("%Zd = %Zd * %Zd + %Zd\n",n,d,t,x);
-        return true;
-    }
+    }    
+    mpz_clears(t,x, y, c, NULL);
+    if ((mpz_cmp(d, n) == 0) || (mpz_cmp_ui(d, 1) == 0)) return -1;
+    else return 0;
    
 }      
 
-bool pollard_rho_Brent_cycle(mpz_t n, mpz_t d, uint64_t nb_iterations){
-   
-   
+int pollard_rho_Brent_cycle(mpz_t n, mpz_t d, uint64_t nb_iterations){
     mpz_t x,y,c,t;
     mpz_inits(x,c,y,t,NULL);
     long long int r, k, m;
 
     // set random for y, c, m
-    // random state
-    gmp_randstate_t my_generator; 
-    gmp_randinit_default(my_generator);
-    gmp_randseed_ui(my_generator, time(NULL));
-    mpz_urandomm(c,my_generator,n);
+    mpz_set_ui(c,1);
 
     // initialize y and p
     mpz_set_ui(y, 2);
@@ -420,61 +399,70 @@ bool pollard_rho_Brent_cycle(mpz_t n, mpz_t d, uint64_t nb_iterations){
         }
     }
 
-    // clear up rand
-    gmp_randclear(my_generator);
-
-    // Print the result
-    if (mpz_cmp(d,n)==0 || mpz_cmp_ui(d,1)==0 ){
-        mpz_clears(x,c,y,t,NULL);
-        return false;
-
-    } else{
-        gmp_printf("One of the divisors for %Zd is %Zd\n",n,d);
-        mpz_clears(x,c,y,t,NULL);
-        return true;
-        
-    }
     
+    mpz_clears(x,c,y,t,NULL);
 
+ if ((mpz_cmp(d, n) == 0) || (mpz_cmp_ui(d, 1) == 0)) return -1;
+    else return 0;
 }
+
+
+
 
 int fact_pollard_rho(mpz_t n,PrimeFactors *f,uint64_t nb_iterations){
 
 
-    bool fact ;
+    int fact ;
     int res;
-    mpz_t N, p;
-    mpz_inits(p, N, NULL);
+    mpz_t N, d, p, c;
+    mpz_inits(d, p, c,N, NULL);
     mpz_set(N, n);
+    mpz_set(d, n);
+    mpz_set_ui(p, 1);
 
     while (mpz_cmp_ui(N, 1) > 0){
-        // trial division by primes from p_min to p_max
-        fact = pollard_rho_Brent_cycle(N,p,nb_iterations);
-        gmp_printf(" p value is %Zd \n",p);
+        // start with x^2 + 1
+        mpz_set_ui(c, 1);
+        fact = pollard_rho_Floy_cycle( d,p,  nb_iterations);
 
-        if (!fact) break; // end of factorizaction  or fail 
-        if (mpz_probab_prime_p(p, 10) > 0){
-               
-                uint64_t exponent = 0;
-                while (mpz_divisible_p(N, p) != 0) {
-                mpz_divexact(N, N, p);
-                exponent++;
-                }
-                if (exponent > 0) {
-                   add_factor(f, p, exponent);
-                }
-
+        // if fail, start with x^2 + 2
+        if (fact != 0){
+            mpz_set_ui(c, 2);
+            fact = pollard_rho_Floy_cycle( d,p,  nb_iterations);
         }
 
-    }
-  
-    //  complete factorization
-    if (mpz_cmp_ui(N, 1) == 0) res= 0;
-    //  incomplete factorization or fail to factorized 
-    else if (!fact)  res= -1 ; 
-    
-    mpz_clears(N, p, NULL);
+        // fail for both choices of polynomial
+        if (fact != 0) break;
 
+        // a factor p is found, perform primality test
+        if (mpz_probab_prime_p(p, 10) != 0) {
+            
+                uint64_t exponent = 0;
+                while (mpz_divisible_p(N, p) != 0) {
+                    mpz_divexact(N, N, p);
+                    exponent++;
+                }                
+                if (exponent > 0) add_factor(f, p, exponent);
+                    
+                mpz_set(d, N);
+
+            // primality test for d
+            if (mpz_probab_prime_p(d, 10) != 0){
+                 add_factor(f, d, exponent);
+                 mpz_set_ui(N,1);
+                break;
+            }
+        } else mpz_set(d, p); // in case factor p is not prime, apply Pollard's rho for p to find a prime factor of n
+    }
+
+
+    // remaining factor is 1, complete factorization
+    if (mpz_cmp_ui(N, 1) == 0) res = 0;
+    // remaining factor is nontrivial and not prime, incomplete factorization
+    else if ((fact != 1) && (mpz_cmp(N, n) < 0)) res = -1;
+
+    mpz_clears(N, d, p, c, NULL);
+    
     return res;
 
 
