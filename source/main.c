@@ -117,7 +117,6 @@ int main(int argc, char const *argv[])
                            else if(r==-1)  printf("Factorization incompleted  try again with nb iterations  bigger \n");
                            } 
 
-
                            printf("Process finished in %.9f secs \n", (double)(end_time-start_time)/CLOCKS_PER_SEC);
 
                            // free factors  after all 
@@ -168,9 +167,10 @@ int main(int argc, char const *argv[])
          {
             printf(" Running all methods  with defaults paremeters \n");
             printf("\n");
-            printf(" p_max = 10^5 \n");
-            printf(" B1    = 10^5 \n");
-            printf(" B2    = 10^6 \n\n");
+            printf(" p_max            = 10^5 \n");
+            printf(" nb iterations    = 10^5 \n");
+            printf(" B1               = 10^5 \n");
+            printf(" B2               = 10^6 \n\n");
 
           
 
@@ -184,6 +184,7 @@ int main(int argc, char const *argv[])
             mpz_set_ui(p_max,100000); // set default value 
             mpz_set_ui(B1,100000);
             mpz_set_ui(B2,10000000);
+            nb_iterations = 100000;
           
 
           
@@ -211,30 +212,30 @@ int main(int argc, char const *argv[])
             free(factors.exponents);         
             printf("Process finished in %.9f secs \n", (double)(end_time-start_time)/CLOCKS_PER_SEC);         
             printf("end  Divisions successives  \n\n\n");
-
-         printf("***********************************************\n\n\n");  
-     
-
+            printf("***********************************************\n\n\n");  
             printf("start  running rho de Pollard   ... \n");
-          
-            /*factors.prime_factors = NULL;
-         factors.exponents = NULL;
-         factors.num_factors=0;
 
-            // set up the defaults vars values here 
+            factors.prime_factors = NULL;
+            factors.exponents = NULL;
+            factors.num_factors = 0;
             start_time = clock();
-            // run the function here 
+            r= fact_pollard_rho(n,&factors,nb_iterations);
             end_time = clock();
-            // free factors  after all 
-            for (int i = 0; i < f.nb_factors; i++) mpz_clear(f.prime_factors[i]);
-            free(f.prime_factors);
-            free(f.exp); 
+            restest = testUnitaire(&factors,n);
+            if(restest!=0) printf(" Rho de  Pollard failled  try again with a nb interations  bigger \n");
+            else{
+            if(r==0)   {    printf("Factorization completed \n\n"); print_primes_factors(&factors,n); }
+            else if(r==-1)  printf("Factorization incompleted  try again with nb iterations  bigger \n");
+            } 
             printf("Process finished in %.9f secs \n", (double)(end_time-start_time)/CLOCKS_PER_SEC);
-            
+            // free factors  after all 
+            for (int i = 0; i < factors.num_factors; i++) mpz_clear(factors.prime_factors[i]);
+            free(factors.prime_factors);
+            free(factors.exponents); 
             printf("end  rho de Pollard  \n\n\n");
            
 
-            */
+            
        
 
          printf("***********************************************\n");
@@ -245,10 +246,8 @@ int main(int argc, char const *argv[])
          factors.exponents = NULL;
          factors.num_factors=0;
          start_time = clock();
-         // run the function here 
          r = fact_p_1_pollard(n,B1,B2,&factors);
          end_time = clock();
-
          restest = testUnitaire(&factors,n);
          if(restest!=0) printf(" P -1 Pollard failled  try again with a bound B1 or B2 bigger \n");
          else{
@@ -267,10 +266,7 @@ int main(int argc, char const *argv[])
 
 
          // clear up 
-         mpz_clears(n,p_max,B1,B2,NULL);
-          
-            // clears up all vars 
-            
+         mpz_clears(n,p_max,B1,B2,NULL);   
          }
 
          else{

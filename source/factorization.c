@@ -20,10 +20,6 @@ void print_primes_factors(PrimeFactors *f,mpz_t N){
    
 }
 
-
-
-
-
 bool p_minus_1(mpz_t n, mpz_t d, mpz_t B1, mpz_t B2){
 
  
@@ -232,7 +228,6 @@ int fact_p_1_pollard(mpz_t n,mpz_t B1,mpz_t B2,PrimeFactors *f)
                 
 }
 
-
 void add_factor(PrimeFactors* pf, mpz_t prime, uint64_t exponent) {
   pf->num_factors++;
   pf->prime_factors = (mpz_t*) realloc(pf->prime_factors, pf->num_factors * sizeof(mpz_t));
@@ -240,7 +235,6 @@ void add_factor(PrimeFactors* pf, mpz_t prime, uint64_t exponent) {
   mpz_init_set(pf->prime_factors[pf->num_factors - 1], prime);
   pf->exponents[pf->num_factors - 1] = exponent;
 }
-
 
 bool trial_division(mpz_t p, mpz_t n, mpz_t p_max){
     if (mpz_probab_prime_p(n, 10) != 0){
@@ -297,7 +291,6 @@ int fact_trialDivision(mpz_t n,mpz_t p_max,PrimeFactors *f)
     
 
 }
-
 
 bool pollard_rho_Floy_cycle(mpz_t n, mpz_t d,uint64_t nb_iterations){
 
@@ -404,9 +397,6 @@ bool pollard_rho_Brent_cycle(mpz_t n, mpz_t d, uint64_t nb_iterations){
     if ((mpz_cmp(d, n) == 0) || (mpz_cmp_ui(d, 1) == 0)) return false;
     else return true;
 }
-
-
-
 
 int fact_pollard_rho(mpz_t n,PrimeFactors *f,uint64_t nb_iterations){
 
