@@ -29,7 +29,26 @@ n=n[2:]
 print(len(n), " et ",n)"""
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    random_float = np.random.uniform(0, 1)
+    n  = f"{random_float:.14f}"
+    print(" 14 digits : ",n[2:])
+    random_float = np.random.uniform(0, 1)
+    n  = f"{random_float:.18f}"
+    print(" 18 digits : ",n[2:])
+    random_float = np.random.uniform(0, 1)
+    n  = f"{random_float:.20f}"
+    print(" 20 digits : ",n[2:])
+    random_float = np.random.uniform(0, 1)
+    n  = f"{random_float:.30f}"
+    print(" 30 digits : ",n[2:])
+    random_float = np.random.uniform(0, 1)
+    n  = f"{random_float:.40f}"
+    print(" 40 digits : ",n[2:])
+    random_float = np.random.uniform(0, 1)
+    n  = f"{random_float:.50f}"
+    print(" 50 digits : ",n[2:])
+
+    """parser = argparse.ArgumentParser()
     parser.add_argument("-n","--numbersize", help=" the size of the number which we want test [ex: -n 40 / -n 50]  ", required=True)
     parser.add_argument('-m','--method' , help = 'The method which we want test  ex: -m 1 for Divisions successives | -m 2 for rho de Pollard  | -m 3 p -1 Pollard ' , required=True)
     args = parser.parse_args()
@@ -98,3 +117,4 @@ if __name__ == "__main__":
             print(resultat)
         
 
+"""

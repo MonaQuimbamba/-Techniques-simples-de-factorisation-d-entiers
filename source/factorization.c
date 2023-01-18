@@ -302,7 +302,7 @@ bool pollard_rho_Floy_cycle(mpz_t n, mpz_t d,uint64_t nb_iterations){
     mpz_set_ui(y, 2);
 
    
-    mpz_set_ui(c,2); // x^2 + 2;
+    mpz_set_ui(c,1); // x^2 + 2;
     
 
     // Set the initial value for d
