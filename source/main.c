@@ -247,7 +247,7 @@ int main(int argc, char const *argv[])
             printf("end  Divisions successives  \n\n\n");
             printf("***********************************************\n\n\n");  
 
-            printf("start  running rho de Pollard  Fly Cycle  ... \n");
+            printf("start  running rho de Pollard  Floy Cycle  ... \n");
 
             factors.prime_factors = NULL;
             factors.exponents = NULL;
@@ -266,12 +266,11 @@ int main(int argc, char const *argv[])
             for (int i = 0; i < factors.num_factors; i++) mpz_clear(factors.prime_factors[i]);
             free(factors.prime_factors);
             free(factors.exponents); 
-            printf("end  rho de Pollard   Brent Cycle   \n\n\n");
+            printf("end  rho de Pollard   Floy Cycle   \n\n\n");
            
 
 
-            printf("start  running rho de Pollard  Fly Cycle  ... \n");
-
+            printf("start  running rho de Pollard  Brent Cycle  ... \n");
             factors.prime_factors = NULL;
             factors.exponents = NULL;
             factors.num_factors = 0;
@@ -374,7 +373,7 @@ int main(int argc, char const *argv[])
             printf("Process finished in %.9f secs \n", (double)(end_time-start_time)/CLOCKS_PER_SEC);         
             printf("end  Divisions successives  \n\n\n");
             printf("***********************************************\n\n\n");  
-            printf("start  running rho de Pollard Fly cycle   ... \n");
+            printf("start  running rho de Pollard Floy cycle   ... \n");
 
             factors.prime_factors = NULL;
             factors.exponents = NULL;
