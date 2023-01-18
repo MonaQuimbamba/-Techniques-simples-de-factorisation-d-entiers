@@ -74,6 +74,8 @@ void add_factor(PrimeFactors* pf, mpz_t prime, uint64_t exponent);
 
 bool pollard_rho_Floy_cycle(mpz_t n, mpz_t d,uint64_t nb_iterations);
 
-int fact_pollard_rho(mpz_t n,PrimeFactors *f,uint64_t nb_iterations);
+int fact_pollard_rho_brent(mpz_t n,PrimeFactors *f,uint64_t nb_iterations);
 
 bool pollard_rho_Brent_cycle(mpz_t n, mpz_t d, uint64_t nb_iterations);
+
+int fact_pollard_rho_floy(mpz_t n,PrimeFactors *f,uint64_t nb_iterations);

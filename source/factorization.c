@@ -398,7 +398,7 @@ bool pollard_rho_Brent_cycle(mpz_t n, mpz_t d, uint64_t nb_iterations){
     else return true;
 }
 
-int fact_pollard_rho(mpz_t n,PrimeFactors *f,uint64_t nb_iterations){
+int fact_pollard_rho_floy(mpz_t n,PrimeFactors *f,uint64_t nb_iterations){
 
 
     bool fact ;
@@ -412,6 +412,60 @@ int fact_pollard_rho(mpz_t n,PrimeFactors *f,uint64_t nb_iterations){
     while (mpz_cmp_ui(N, 1) > 0){
       
         fact = pollard_rho_Floy_cycle( d,p,  nb_iterations);
+        // fail for both choices of polynomial
+        if (!fact) break;
+
+        // a factor p is found, perform primality test
+        if (mpz_probab_prime_p(p, 10) != 0) {
+            
+                uint64_t exponent = 0;
+                while (mpz_divisible_p(N, p) != 0) {
+                    mpz_divexact(N, N, p);
+                    exponent++;
+                }                
+                if (exponent > 0) add_factor(f, p, exponent);
+                    
+                mpz_set(d, N);
+
+            // primality test for d
+            if (mpz_probab_prime_p(d, 10) != 0){
+                 add_factor(f, d, exponent);
+                 mpz_set_ui(N,1);
+                break;
+            }
+        } else mpz_set(d, p); // in case factor p is not prime, apply Pollard's rho for p to find a prime factor of n
+    }
+
+
+    // remaining factor is 1, complete factorization
+    if (mpz_cmp_ui(N, 1) == 0) res = 0;
+    // remaining factor is nontrivial and not prime, incomplete factorization
+    else if ((!fact)) res = -1;
+
+    mpz_clears(N, d, p, NULL);
+    
+    return res;
+
+
+}
+
+
+
+
+int fact_pollard_rho_brent(mpz_t n,PrimeFactors *f,uint64_t nb_iterations){
+
+
+    bool fact ;
+    int res;
+    mpz_t N, d, p;
+    mpz_inits(d, p,N, NULL);
+    mpz_set(N, n);
+    mpz_set(d, n);
+    mpz_set_ui(p, 1);
+
+    while (mpz_cmp_ui(N, 1) > 0){
+      
+        fact = pollard_rho_Brent_cycle( d,p,  nb_iterations);
         // fail for both choices of polynomial
         if (!fact) break;
 
