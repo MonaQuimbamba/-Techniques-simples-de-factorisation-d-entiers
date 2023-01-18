@@ -1,0 +1,16 @@
+fait moi un  rapport sur la methode de factorization p -1 de pollard ,en parlant de son  implémententation son comportement de manière expérimentale, sa  complexité théorique
+
+
+
+Pour un même effort de calcul il est donc possible de trouver des facteurs plus grands que pour
+les méthodes rho de pollard et divisions succesives , mais la probabilité que cela se produise decroît
+ à priori avec la taille de ce facteur. Vous pouvez  mettre ça en   ́evidence ?
+
+
+ce ph ́enom`ene et essaierez de confronter vos mesures exp ́erimentales avec
+des prédictions th ́eoriques.
+
+
+et enfin fait une  comparer les
+spécificit ́es et efficacités respectives.
+Vous devrez connaˆıtre et savoir justifier la complexité théorique

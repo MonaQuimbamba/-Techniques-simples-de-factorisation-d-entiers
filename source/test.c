@@ -2,7 +2,7 @@
 
 // gcc test.c -Wall -lgmp -o test 
 
-int testUnitaire(factor *f, mpz_t n){
+int testUnitaire(factor *f, mpz_t n){  47446859972530264215606621291954070329666137695312
      int r=0;
      mpz_t test,tmp;
      mpz_inits(test,tmp,NULL);
