@@ -120,53 +120,6 @@ bool p_minus_1(mpz_t n, mpz_t d, mpz_t B1, mpz_t B2){
                        mpz_nextprime(p,p);
                 }
                 mpz_clear(b);
-
-/* *********************  TO DO ****************************************
-              mpz_set(b,a); // set b(o)=a(B1)
-                mpz_nextprime(p,B1);
-                int i=0;
-                while(mpz_cmp(B2,p)>0){ // We then compute b1 = b(o)^l1  mod n, ...
-
-
-                    if(i<1){ // to compute the b1 only 
-                        
-
-                        mpz_set(tmp_b,b);// set tmp_b <- b(k-1)
-                        mpz_set(tmp_p,p); // set tmp_p <- p(k-1)
-
-                        mpz_powm(b,b,p,n); // set b <- b(k+1)
-                        mpz_sub_ui(tmp, b, 1);
-                        mpz_gcd(tmp, tmp, n);
-                        if (mpz_cmp_ui(tmp, 1) > 0 && mpz_cmp(tmp, n) < 0){
-                            mpz_set(d, tmp);
-                            found = true;
-                            break;
-                        }
-                       mpz_nextprime(p,p);
-                       i++;
-                    }
-                    else{
-                          //bk+1 = bkclk+1−lk mod n
-                          mpz_sub(tmp_exp,p,tmp_p);  // compute  expo  <- p(k+1) - p(k-1)
-                          mpz_powm(t,tmp_b,tmp_exp,n); // t <- b(o)^(p - tmp_p) mod n 
-                          mpz_mul(t,t,b); // t <- b(k+1) * b(k-1)
-                          mpz_mod(t,t,n);  // b <- t mod n    => set b <- b(k+1)
-
-                          mpz_set(tmp_b,b); // set tmp_b <- b(k - 1)
-                          mpz_set(tmp_p,p); // set tmp_p <- p(k -1)
-                          mpz_set(b,t);
-
-                        mpz_sub_ui(tmp, b, 1);
-                        mpz_gcd(tmp, tmp, n);
-                        if (mpz_cmp_ui(tmp, 1) > 0 && mpz_cmp(tmp, n) < 0){
-                            mpz_set(d, tmp);
-                            found = true;
-                            break;
-                        }
-                       mpz_nextprime(p,p);
-                    }    
-                }
-                mpz_clears(b,tmp_b,tmp_p,tmp_exp,t,NULL);*/
                 
     }
     mpz_clears(a, p, q, tmp,NULL);
@@ -300,15 +253,13 @@ bool pollard_rho_Floy_cycle(mpz_t n, mpz_t d,uint64_t nb_iterations){
     // Set the initial values for x and y
     mpz_set_ui(x, 2);
     mpz_set_ui(y, 2);
-
    
     mpz_set_ui(c,1); // x^2 + 2;
     
-
     // Set the initial value for d
     mpz_set_ui(d, 1);
     unsigned int i = 0;
-    while(mpz_cmp_ui(d, 1) == 0){
+    while((mpz_cmp_ui(d, 1) == 0) || (mpz_cmp(d, n) == 0)){
         if (i > nb_iterations) break;
         i++;
 
@@ -332,9 +283,6 @@ bool pollard_rho_Floy_cycle(mpz_t n, mpz_t d,uint64_t nb_iterations){
         mpz_abs(d, d);
         mpz_gcd(d, d, n);
 
-        if ( mpz_cmp(d,n)!=0 && mpz_cmp_ui(d,1) !=0) {
-            break;
-        }
     }    
     mpz_clears(t,x, y, c, NULL);
     if ((mpz_cmp(d, n) == 0) || (mpz_cmp_ui(d, 1) == 0)) return false;
@@ -359,7 +307,6 @@ bool pollard_rho_Brent_cycle(mpz_t n, mpz_t d, uint64_t nb_iterations){
     
     while ((mpz_cmp_ui(d, 1) == 0) || (mpz_cmp(d, n) == 0)){
         
-        // x to the current position of y, namely x_i
         mpz_set(x, y);
 
         k = 0;
@@ -371,7 +318,8 @@ bool pollard_rho_Brent_cycle(mpz_t n, mpz_t d, uint64_t nb_iterations){
             mpz_mod(y, y, n);
         }
 
-        // test gcd(|x-y|, n); where y ranges from x_(i+r) to x_(i+2r)
+        // test gcd(|x-y|, n)
+        // where y ranges from x_(i+r) to x_(i+2r)
         while ((k < r) && (mpz_cmp_ui(d, 1) == 0)){
             mpz_mul(y, y, y);
             mpz_add(y, y, c);
@@ -383,14 +331,10 @@ bool pollard_rho_Brent_cycle(mpz_t n, mpz_t d, uint64_t nb_iterations){
             k++;
         }
 
-        // going to the next power of 2
+        // the next power of 2
         r = r*2;
         if (r >= nb_iterations) break;
-        if ( mpz_cmp(d,n)!=0 && mpz_cmp_ui(d,1) !=0) {
-            break;
-        }
     }
-
     
     mpz_clears(x,c,y,t,NULL);
 
@@ -399,7 +343,6 @@ bool pollard_rho_Brent_cycle(mpz_t n, mpz_t d, uint64_t nb_iterations){
 }
 
 int fact_pollard_rho_floy(mpz_t n,PrimeFactors *f,uint64_t nb_iterations){
-
 
     bool fact ;
     int res;
