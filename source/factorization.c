@@ -292,37 +292,46 @@ int fact_trialDivision(mpz_t n,mpz_t p_max,PrimeFactors *f)
 
 }
 
+
 bool pollard_rho_Floy_cycle(mpz_t n, mpz_t d,uint64_t nb_iterations){
+
+    if (mpz_divisible_ui_p(n, 2) > 0){
+         mpz_set_ui(d, 2);
+        return true;
+    }
+
+    // if (mpz_probab_prime_p(n, 10) > 0){ // first primality test 
+    //      mpz_set(d, n);
+    //     return true;
+    // }
 
     mpz_t t,x, y, c;
     mpz_inits(t,x, y, c, NULL);
 
-    // Set the initial values for x and y
+    // initialize values for x,y,c,d
     mpz_set_ui(x, 2);
     mpz_set_ui(y, 2);
-
-   
-    mpz_set_ui(c,1); // x^2 + 2;
-    
-
-    // Set the initial value for d
+    mpz_set_ui(c, 1);
     mpz_set_ui(d, 1);
+
+    // variable i for counting iteration
     unsigned int i = 0;
-    while(mpz_cmp_ui(d, 1) == 0){
+
+    while((mpz_cmp_ui(d, 1) == 0) ){
         if (i > nb_iterations) break;
         i++;
 
-        // Set x to (x^2 + c) mod n
+        // f(x) = (x^2 + c) % n
         mpz_mul(x, x, x);
         mpz_add(x, x, c);
         mpz_mod(x, x, n);
 
-        // Set y to (y^2 + c) mod n
+        // f(y) = (y^2 + c) % n
         mpz_mul(y, y, y);
         mpz_add(y, y, c);
         mpz_mod(y, y, n);
 
-        // Set y to (y^2 + c) mod n again
+        // f(f(y))
         mpz_mul(y, y, y);
         mpz_add(y, y, c);
         mpz_mod(y, y, n);
@@ -332,74 +341,116 @@ bool pollard_rho_Floy_cycle(mpz_t n, mpz_t d,uint64_t nb_iterations){
         mpz_abs(d, d);
         mpz_gcd(d, d, n);
 
-        if ( mpz_cmp(d,n)!=0 && mpz_cmp_ui(d,1) !=0) {
-            break;
-        }
-    }    
-    mpz_clears(t,x, y, c, NULL);
-    if ((mpz_cmp(d, n) == 0) || (mpz_cmp_ui(d, 1) == 0)) return false;
-    else return true;
-   
-}      
+        if (mpz_cmp(d,n)==0){
+            while(1){
+                i++;
+                // (x^2 + c) % n
+                mpz_mul(x, x, x);
+                mpz_add(x, x, c);
+                mpz_mod(x, x, n);
 
-bool pollard_rho_Brent_cycle(mpz_t n, mpz_t d, uint64_t nb_iterations){
-    mpz_t x,y,c,t;
-    mpz_inits(x,c,y,t,NULL);
-   uint64_t r, k;
-
-    // set random for y, c, m
-    mpz_set_ui(c,1);
-
-    // initialize y and p
-    mpz_set_ui(y, 2);
-    mpz_set_ui(d, 1);
-
-    // r is a power of 2
-    r = 1;
-    
-    while ((mpz_cmp_ui(d, 1) == 0) || (mpz_cmp(d, n) == 0)){
-        
-        // x to the current position of y, namely x_i
-        mpz_set(x, y);
-
-        k = 0;
-
-        // y to x_(i+r)
-        for (int i=0;i++;i<r){
-            mpz_mul(y, y, y);
-            mpz_add(y, y, c);
-            mpz_mod(y, y, n);
-        }
-
-        // test gcd(|x-y|, n); where y ranges from x_(i+r) to x_(i+2r)
-        while ((k < r) && (mpz_cmp_ui(d, 1) == 0)){
-            mpz_mul(y, y, y);
-            mpz_add(y, y, c);
-            mpz_mod(y, y, n);
-            mpz_sub(t, x, y);
-            mpz_abs(t, t);
-            mpz_mod(t, t, n);                  
-            mpz_gcd(d, t, n);
-            k++;
-        }
-
-        // going to the next power of 2
-        r = r*2;
-        if (r >= nb_iterations) break;
-        if ( mpz_cmp(d,n)!=0 && mpz_cmp_ui(d,1) !=0) {
-            break;
+                // d = gcd(|x-y|,n)
+                mpz_sub(d, x, y);
+                mpz_abs(d, d);
+                mpz_gcd(d, d, n);
+                if (mpz_cmp_ui(d, 1) > 0) break;
+            }
         }
     }
 
+    mpz_clears(t,x, y, c, NULL);
+
+    if ((mpz_cmp(d, n) == 0) || (mpz_cmp_ui(d, 1) == 0)) return false;
+    else return true;
+   
+}
+
+bool pollard_rho_Brent_cycle(mpz_t n, mpz_t d, uint64_t nb_iterations){
+
+    if (mpz_divisible_ui_p(n, 2) > 0){
+         mpz_set_ui(d, 2);
+        return true;
+    }
+
+    // if (mpz_probab_prime_p(n, 10) > 0){ // first primality test 
+    //      mpz_set(d, n);
+    //     return true;
+    // }
+
+    mpz_t x, y, ys, q, c, temp;
+    mpz_inits(x, y, ys, q, c, temp, NULL);
     
-    mpz_clears(x,c,y,t,NULL);
+    // initialization
+    mpz_set_ui(y, 2);
+    mpz_set_ui(d, 1);
+    mpz_set_ui(q, 1);
+    mpz_set_ui(c, 1);
+
+    // r is a power of 2
+    long long int r = 1;
+    long long int m = 1;
+    long long int sub_count = 0;
+    
+    while ((mpz_cmp(d, n) == 0) || (mpz_cmp_ui(d, 1) == 0)) {
+        mpz_set(x, y);
+
+        for(int i = 0; i<r; i++){
+            mpz_mul(y, y, y);
+            mpz_add(y, y, c);
+            mpz_mod(y, y, n);
+        }
+
+        long long int k = 0;
+
+        while ((k < r) && (mpz_cmp_ui(d, 1) == 0)){
+            mpz_set(ys, y);
+            
+            for(int i = 0; ( (i < m) || (i < r-k) ); i++) {
+                // y = (y^2+c) % n
+                mpz_mul(y, y, y);
+                mpz_add(y, y, c);
+                mpz_mod(y, y, n);   
+
+                // q = q*(abs(x-y))%n
+                mpz_sub(temp, x, y);
+                mpz_abs(temp, temp);
+                mpz_mul(q, q, temp);
+                mpz_mod(q, q, n);           
+            }
+
+            mpz_gcd(d, q, n);
+            k = k + m;
+        }
+
+        r = r*2;
+        if (r > nb_iterations) break;
+
+        if (mpz_cmp(d,n)==0){
+            sub_count = r;
+            while(1){
+                sub_count++;
+                //ys = (ys^2+c) % n
+                mpz_mul(ys, ys, ys);
+                mpz_add(ys, ys, c);
+                mpz_mod(ys, ys, n);
+
+                //d = gcd(abs(x-ys),n)
+                mpz_sub(temp, x, ys);
+                mpz_abs(temp, temp);
+                mpz_gcd(d, temp, n);
+                if(mpz_cmp_ui(d,1)!=0) break;
+                if (sub_count > nb_iterations) break;
+            }
+        }
+    }
+    
+    mpz_clears(x, y, ys, q, c, temp, NULL);
 
     if ((mpz_cmp(d, n) == 0) || (mpz_cmp_ui(d, 1) == 0)) return false;
     else return true;
 }
 
 int fact_pollard_rho_floy(mpz_t n,PrimeFactors *f,uint64_t nb_iterations){
-
 
     bool fact ;
     int res;
@@ -429,7 +480,7 @@ int fact_pollard_rho_floy(mpz_t n,PrimeFactors *f,uint64_t nb_iterations){
 
             // primality test for d
             if (mpz_probab_prime_p(d, 10) != 0){
-                 add_factor(f, d, exponent);
+                 add_factor(f, d, 1);
                  mpz_set_ui(N,1);
                 break;
             }
@@ -448,9 +499,6 @@ int fact_pollard_rho_floy(mpz_t n,PrimeFactors *f,uint64_t nb_iterations){
 
 
 }
-
-
-
 
 int fact_pollard_rho_brent(mpz_t n,PrimeFactors *f,uint64_t nb_iterations){
 
@@ -483,7 +531,8 @@ int fact_pollard_rho_brent(mpz_t n,PrimeFactors *f,uint64_t nb_iterations){
 
             // primality test for d
             if (mpz_probab_prime_p(d, 10) != 0){
-                 add_factor(f, d, exponent);
+                // gmp_printf("Im In\n");
+                 add_factor(f, d, 1);
                  mpz_set_ui(N,1);
                 break;
             }
