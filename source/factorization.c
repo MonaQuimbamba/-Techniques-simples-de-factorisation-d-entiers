@@ -237,7 +237,7 @@ int fact_trialDivision(mpz_t n,mpz_t p_max,PrimeFactors *f)
 
 }    
 
-bool pollard_rho_Floy_cycle(mpz_t n, mpz_t d,uint64_t nb_iterations){
+bool pollard_rho_Floyd_cycle(mpz_t n, mpz_t d,uint64_t nb_iterations){
 
     if (mpz_divisible_ui_p(n, 2) > 0){
          mpz_set_ui(d, 2);
@@ -384,7 +384,7 @@ bool pollard_rho_Brent_cycle(mpz_t n, mpz_t d, uint64_t nb_iterations){
     else return true;
 }
 
-int fact_pollard_rho_floy(mpz_t n,PrimeFactors *f,uint64_t nb_iterations){
+int fact_pollard_rho_Floyd(mpz_t n,PrimeFactors *f,uint64_t nb_iterations){
 
     bool fact ;
     int res;
@@ -396,7 +396,7 @@ int fact_pollard_rho_floy(mpz_t n,PrimeFactors *f,uint64_t nb_iterations){
 
     while (mpz_cmp_ui(N, 1) > 0){
       
-        fact = pollard_rho_Floy_cycle( d,p,  nb_iterations);
+        fact = pollard_rho_Floyd_cycle( d,p,  nb_iterations);
         // fail for both choices of polynomial
         if (!fact) break;
 
