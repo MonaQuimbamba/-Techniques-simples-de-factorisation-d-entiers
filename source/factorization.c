@@ -120,53 +120,6 @@ bool p_minus_1(mpz_t n, mpz_t d, mpz_t B1, mpz_t B2){
                        mpz_nextprime(p,p);
                 }
                 mpz_clear(b);
-
-/* *********************  TO DO ****************************************
-              mpz_set(b,a); // set b(o)=a(B1)
-                mpz_nextprime(p,B1);
-                int i=0;
-                while(mpz_cmp(B2,p)>0){ // We then compute b1 = b(o)^l1  mod n, ...
-
-
-                    if(i<1){ // to compute the b1 only 
-                        
-
-                        mpz_set(tmp_b,b);// set tmp_b <- b(k-1)
-                        mpz_set(tmp_p,p); // set tmp_p <- p(k-1)
-
-                        mpz_powm(b,b,p,n); // set b <- b(k+1)
-                        mpz_sub_ui(tmp, b, 1);
-                        mpz_gcd(tmp, tmp, n);
-                        if (mpz_cmp_ui(tmp, 1) > 0 && mpz_cmp(tmp, n) < 0){
-                            mpz_set(d, tmp);
-                            found = true;
-                            break;
-                        }
-                       mpz_nextprime(p,p);
-                       i++;
-                    }
-                    else{
-                          //bk+1 = bkclk+1−lk mod n
-                          mpz_sub(tmp_exp,p,tmp_p);  // compute  expo  <- p(k+1) - p(k-1)
-                          mpz_powm(t,tmp_b,tmp_exp,n); // t <- b(o)^(p - tmp_p) mod n 
-                          mpz_mul(t,t,b); // t <- b(k+1) * b(k-1)
-                          mpz_mod(t,t,n);  // b <- t mod n    => set b <- b(k+1)
-
-                          mpz_set(tmp_b,b); // set tmp_b <- b(k - 1)
-                          mpz_set(tmp_p,p); // set tmp_p <- p(k -1)
-                          mpz_set(b,t);
-
-                        mpz_sub_ui(tmp, b, 1);
-                        mpz_gcd(tmp, tmp, n);
-                        if (mpz_cmp_ui(tmp, 1) > 0 && mpz_cmp(tmp, n) < 0){
-                            mpz_set(d, tmp);
-                            found = true;
-                            break;
-                        }
-                       mpz_nextprime(p,p);
-                    }    
-                }
-                mpz_clears(b,tmp_b,tmp_p,tmp_exp,t,NULL);*/
                 
     }
     mpz_clears(a, p, q, tmp,NULL);
@@ -311,13 +264,24 @@ bool pollard_rho_Floy_cycle(mpz_t n, mpz_t d,uint64_t nb_iterations){
     // initialize values for x,y,c,d
     mpz_set_ui(x, 2);
     mpz_set_ui(y, 2);
+<<<<<<< HEAD
     mpz_set_ui(c, 1);
+=======
+   
+    mpz_set_ui(c,1); // x^2 + 2;
+    
+    // Set the initial value for d
+>>>>>>> c1c7d14ebb4d8d2593301e1f1a26f8de1cc87053
     mpz_set_ui(d, 1);
 
     // variable i for counting iteration
     unsigned int i = 0;
+<<<<<<< HEAD
 
     while((mpz_cmp_ui(d, 1) == 0) ){
+=======
+    while((mpz_cmp_ui(d, 1) == 0) || (mpz_cmp(d, n) == 0)){
+>>>>>>> c1c7d14ebb4d8d2593301e1f1a26f8de1cc87053
         if (i > nb_iterations) break;
         i++;
 
@@ -341,6 +305,7 @@ bool pollard_rho_Floy_cycle(mpz_t n, mpz_t d,uint64_t nb_iterations){
         mpz_abs(d, d);
         mpz_gcd(d, d, n);
 
+<<<<<<< HEAD
         if (mpz_cmp(d,n)==0){
             while(1){
                 i++;
@@ -358,6 +323,9 @@ bool pollard_rho_Floy_cycle(mpz_t n, mpz_t d,uint64_t nb_iterations){
         }
     }
 
+=======
+    }    
+>>>>>>> c1c7d14ebb4d8d2593301e1f1a26f8de1cc87053
     mpz_clears(t,x, y, c, NULL);
 
     if ((mpz_cmp(d, n) == 0) || (mpz_cmp_ui(d, 1) == 0)) return false;
@@ -391,7 +359,12 @@ bool pollard_rho_Brent_cycle(mpz_t n, mpz_t d, uint64_t nb_iterations){
     long long int m = 1;
     long long int sub_count = 0;
     
+<<<<<<< HEAD
     while ((mpz_cmp(d, n) == 0) || (mpz_cmp_ui(d, 1) == 0)) {
+=======
+    while ((mpz_cmp_ui(d, 1) == 0) || (mpz_cmp(d, n) == 0)){
+        
+>>>>>>> c1c7d14ebb4d8d2593301e1f1a26f8de1cc87053
         mpz_set(x, y);
 
         for(int i = 0; i<r; i++){
@@ -400,8 +373,13 @@ bool pollard_rho_Brent_cycle(mpz_t n, mpz_t d, uint64_t nb_iterations){
             mpz_mod(y, y, n);
         }
 
+<<<<<<< HEAD
         long long int k = 0;
 
+=======
+        // test gcd(|x-y|, n)
+        // where y ranges from x_(i+r) to x_(i+2r)
+>>>>>>> c1c7d14ebb4d8d2593301e1f1a26f8de1cc87053
         while ((k < r) && (mpz_cmp_ui(d, 1) == 0)){
             mpz_set(ys, y);
             
@@ -422,6 +400,7 @@ bool pollard_rho_Brent_cycle(mpz_t n, mpz_t d, uint64_t nb_iterations){
             k = k + m;
         }
 
+<<<<<<< HEAD
         r = r*2;
         if (r > nb_iterations) break;
 
@@ -442,6 +421,11 @@ bool pollard_rho_Brent_cycle(mpz_t n, mpz_t d, uint64_t nb_iterations){
                 if (sub_count > nb_iterations) break;
             }
         }
+=======
+        // the next power of 2
+        r = r*2;
+        if (r >= nb_iterations) break;
+>>>>>>> c1c7d14ebb4d8d2593301e1f1a26f8de1cc87053
     }
     
     mpz_clears(x, y, ys, q, c, temp, NULL);

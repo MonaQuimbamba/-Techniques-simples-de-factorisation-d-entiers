@@ -15,6 +15,12 @@ for i in  range(0,len(lines)):
     cmd = subprocess.Popen("./main %s 100000 100000"%lines[i].strip(), shell=True,stdout=subprocess.PIPE)
     (resultat, ignorer) = cmd.communicate()
     print(resultat)
+    4 digits :  90866896475539
+ 18 digits :  569540548505160227
+ 20 digits :  83773924823808287865
+ 30 digits :  954225503633997496066854182573
+ 40 digits :  8831840195884534949755106936208903789520
+ 50 digits :  34702918589293429985076500088325701653957366943359
  """
 
 
@@ -117,4 +123,52 @@ if __name__ == "__main__":
             print(resultat)
         
 
+"""
+"""
+/* *********************  TO DO ****************************************
+              mpz_set(b,a); // set b(o)=a(B1)
+                mpz_nextprime(p,B1);
+                int i=0;
+                while(mpz_cmp(B2,p)>0){ // We then compute b1 = b(o)^l1  mod n, ...
+
+
+                    if(i<1){ // to compute the b1 only 
+                        
+
+                        mpz_set(tmp_b,b);// set tmp_b <- b(k-1)
+                        mpz_set(tmp_p,p); // set tmp_p <- p(k-1)
+
+                        mpz_powm(b,b,p,n); // set b <- b(k+1)
+                        mpz_sub_ui(tmp, b, 1);
+                        mpz_gcd(tmp, tmp, n);
+                        if (mpz_cmp_ui(tmp, 1) > 0 && mpz_cmp(tmp, n) < 0){
+                            mpz_set(d, tmp);
+                            found = true;
+                            break;
+                        }
+                       mpz_nextprime(p,p);
+                       i++;
+                    }
+                    else{
+                          //bk+1 = bkclk+1−lk mod n
+                          mpz_sub(tmp_exp,p,tmp_p);  // compute  expo  <- p(k+1) - p(k-1)
+                          mpz_powm(t,tmp_b,tmp_exp,n); // t <- b(o)^(p - tmp_p) mod n 
+                          mpz_mul(t,t,b); // t <- b(k+1) * b(k-1)
+                          mpz_mod(t,t,n);  // b <- t mod n    => set b <- b(k+1)
+
+                          mpz_set(tmp_b,b); // set tmp_b <- b(k - 1)
+                          mpz_set(tmp_p,p); // set tmp_p <- p(k -1)
+                          mpz_set(b,t);
+
+                        mpz_sub_ui(tmp, b, 1);
+                        mpz_gcd(tmp, tmp, n);
+                        if (mpz_cmp_ui(tmp, 1) > 0 && mpz_cmp(tmp, n) < 0){
+                            mpz_set(d, tmp);
+                            found = true;
+                            break;
+                        }
+                       mpz_nextprime(p,p);
+                    }    
+                }
+                mpz_clears(b,tmp_b,tmp_p,tmp_exp,t,NULL);*/
 """
