@@ -1,12 +1,12 @@
-#:/bin/python3
+#!/bin/python3
 import os
 import subprocess
 import argparse
 import numpy as np
+import random
 
-
-"""# Using readlines()
-file1 = open('40_digits_test.txt', 'r')
+# Using readlines()
+"""file1 = open('40_digits_test.txt', 'r')
 lines = file1.readlines()
 
 
@@ -34,25 +34,49 @@ n  = f"{random_float:.40f}"
 n=n[2:]
 print(len(n), " et ",n)"""
 
+def replace_zeros(numbers):
+    for i in range(len(numbers)):
+        if numbers[i] == 0:
+            numbers[i] = random.randint(1, 100)
+    return "".join(map(str, numbers))
+
 if __name__ == "__main__":
-    random_float = np.random.uniform(0, 1)
-    n  = f"{random_float:.14f}"
-    print(" 14 digits : ",n[2:])
-    random_float = np.random.uniform(0, 1)
-    n  = f"{random_float:.18f}"
-    print(" 18 digits : ",n[2:])
-    random_float = np.random.uniform(0, 1)
-    n  = f"{random_float:.20f}"
-    print(" 20 digits : ",n[2:])
-    random_float = np.random.uniform(0, 1)
-    n  = f"{random_float:.30f}"
-    print(" 30 digits : ",n[2:])
-    random_float = np.random.uniform(0, 1)
-    n  = f"{random_float:.40f}"
-    print(" 40 digits : ",n[2:])
-    random_float = np.random.uniform(0, 1)
-    n  = f"{random_float:.50f}"
-    print(" 50 digits : ",n[2:])
+    num_digits=60
+    n = str(random.randint(10**(num_digits-1), 10**num_digits-1))
+    print(" 60 digits : ",n)
+    cmd = subprocess.Popen("./main %s 1000000000 100000000 1000000000 10000000000"%n, shell=True,stdout=subprocess.PIPE)
+    (resultat, ignorer) = cmd.communicate()
+    print(resultat)
+
+    num_digits=65
+    n = str(random.randint(10**(num_digits-1), 10**num_digits-1))
+    print(" 65 digits : ",n)
+    cmd = subprocess.Popen("./main %s 1000000000 100000000 1000000000 10000000000"%n, shell=True,stdout=subprocess.PIPE)
+    (resultat, ignorer) = cmd.communicate()
+    print(resultat)
+
+    num_digits=70
+    n = str(random.randint(10**(num_digits-1), 10**num_digits-1))
+    print(" 70 digits : ",n)
+    cmd = subprocess.Popen("./main %s 1000000000 100000000 1000000000 10000000000"%n, shell=True,stdout=subprocess.PIPE)
+    (resultat, ignorer) = cmd.communicate()
+    print(resultat)
+
+
+
+    num_digits=75
+    n = str(random.randint(10**(num_digits-1), 10**num_digits-1))
+    print(" 75 digits : ",n)
+    cmd = subprocess.Popen("./main %s 1000000000 100000000 1000000000 10000000000"%n, shell=True,stdout=subprocess.PIPE)
+    (resultat, ignorer) = cmd.communicate()
+    print(resultat)
+
+    num_digits=80
+    n = str(random.randint(10**(num_digits-1), 10**num_digits-1))
+    print(" 80 digits : ",n)
+    cmd = subprocess.Popen("./main %s 1000000000 100000000 1000000000 10000000000"%n, shell=True,stdout=subprocess.PIPE)
+    (resultat, ignorer) = cmd.communicate()
+    print(resultat)
 
     """parser = argparse.ArgumentParser()
     parser.add_argument("-n","--numbersize", help=" the size of the number which we want test [ex: -n 40 / -n 50]  ", required=True)
